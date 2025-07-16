@@ -245,7 +245,7 @@ Obj_EndSign:
 		lea	(.kplc2)(a5),a5
 
 .notknux2
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 		; exit from dplc slot
 		jsr	(Remove_From_TrackingSlot).w

@@ -24,8 +24,11 @@ sBossBlock_SpikeTouch			= 3
 Obj_BossBlock:
 
 		; don't load the objects until the art has been loaded
-		tst.w	(KosPlus_modules_left).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
 		bne.w	BossBlock_MoveLeftRight.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.w	BossBlock_MoveLeftRight.return
+
 		move.l	#BossBlock_Setup4,address(a0)
 
 		; init

@@ -15,8 +15,11 @@ obBF_Jump				= objoff_34	; .l
 Obj_BossFire:
 
 		; don't load the objects until the art has been loaded
-		tst.w	(KosPlus_modules_left).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
 		bne.s	BossFire_MoveLeft.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	BossFire_MoveLeft.return
+
 		move.l	#BossFire_Setup3,address(a0)
 
 		; init
@@ -636,7 +639,7 @@ Obj_BossFire_Scaled:
 .delete
 
 		; restore chunks
-		QueueKosPlus	MZ3_128x128_KosP, RAM_start
+	;	QueueKosPlus	MZ3_128x128_KosP, RAM_start
 
 		; update time counter
 		move.b	#1,(Update_HUD_timer).w

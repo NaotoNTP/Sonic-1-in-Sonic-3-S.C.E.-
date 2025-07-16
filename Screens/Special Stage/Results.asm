@@ -30,9 +30,11 @@ Obj_SpecialStage_Results:
 ; ---------------------------------------------------------------------------
 
 .create
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.return								; don't load the objects until the art has been loaded
-
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.return
+		
 		; load text
 		lea	next_object(a0),a1
 		lea	ObjArray_SSResults(pc),a2

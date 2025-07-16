@@ -2,9 +2,24 @@
 ; RAM variables
 ; ===========================================================================
 
+; NLZ Configuration Constants.
+NLZ_CONFIG	equ	4					; Set this value to one of the following values to configure the decompressor for your desired module size.
+								; 1 = $200 byte modules; 2 = $400 byte modules; 3 = $800 byte modules; 4 = $1000 byte modules; 5 = $2000 byte modules.
+NLZ_BUFFER_SIZE	equ	$100<<NLZ_CONFIG			; Size of the decompression buffer (in bytes).
+NLZ_QUEUE_SIZE	equ	16					; Number of slots in the decompression queue.
+
+; NLZ Queue Entry Offsets.
+nque:	struct	dots
+	next:	ds.w	1					; Word-size pointer to the next entry in the queue.
+	src:	ds.l	1					; Source address (ROM) of the NLZ archive to be decompressed.
+	dest:	ds.w	1					; Destination address (VRAM) to transfer the decompressed art to. 
+	size:	ds.b	0					; Size of a single queue entry in bytes.
+	endstruct
+
 ; RAM variables - General
 	phase	ramaddr($FFFF0000)									; pretend we're in the RAM
 RAM_start:						= *
+nlzLgBuffer:						= *
 Chunk_table:						ds.b $100*$80					; chunk (128x128) definitions, $80 bytes per definition
 Chunk_table_end						= *
 
@@ -33,7 +48,8 @@ Wave_Splash:						ds.b object_size				; Obj_WaveSplash is loaded here
 Object_RAM_end						= *
 
 ; kosinski plus moduled buffer variables
-KosPlus_decomp_buffer:					ds.b $1000					; each module in a KosPlusM archive is decompressed here and then DMAed to VRAM
+;KosPlus_decomp_buffer:
+nlzBuffer:						ds.b	NLZ_BUFFER_SIZE	; The main buffer used for decompressing moduled NLZ archives in the decompression queue.
 
 ; scroll variables
 H_scroll_buffer:					ds.l 224					; horizontal scroll table is built up here and then DMAed to VRAM
@@ -362,20 +378,43 @@ Level_data_addr_RAM:					= *
 Level_data_addr_RAM_end					= *
 
 ; kosinski plus variables
-KosPlus_decomp_queue_count:				ds.w 1						; the number of pieces of data on the queue. Sign bit set indicates a decompression is in progress
-KosPlus_decomp_stored_registers:			ds.w 12						; allows decompression to be spread over multiple frames
-KosPlus_decomp_stored_SR:				ds.w 1
-KosPlus_decomp_bookmark:				ds.l 1						; the address within the Kosinski Plus queue processor at which processing is to be resumed
-KosPlus_decomp_queue:					ds.l 2*4					; 2 longwords per entry, first is source location and second is decompression location
-KosPlus_decomp_source:					= KosPlus_decomp_queue				; the compressed data location for the first entry in the queue
-KosPlus_decomp_destination:				= KosPlus_decomp_queue+4			; the decompression location for the first entry in the queue
-KosPlus_decomp_queue_end				= *
-KosPlus_modules_left:					ds.w 1						; the number of modules left to decompresses. Sign bit set indicates a module is being decompressed/has been decompressed
-KosPlus_last_module_size:				ds.w 1						; the uncompressed size of the last module in words. All other modules are $800 words
-KosPlus_module_queue:					ds.b 6*PLCKosPlusM_Count			; 6 bytes per entry, first longword is source location and next word is VRAM destination
-KosPlus_module_source:					= KosPlus_module_queue				; the compressed data location for the first module in the queue
-KosPlus_module_destination:				= KosPlus_module_queue+4			; the VRAM destination for the first module in the queue
-KosPlus_module_queue_end				= *
+;KosPlus_decomp_queue_count:				ds.w 1						; the number of pieces of data on the queue. Sign bit set indicates a decompression is in progress
+;KosPlus_decomp_stored_registers:			ds.w 12						; allows decompression to be spread over multiple frames
+;KosPlus_decomp_stored_SR:				ds.w 1
+;KosPlus_decomp_bookmark:				ds.l 1						; the address within the Kosinski Plus queue processor at which processing is to be resumed
+;KosPlus_decomp_queue:					ds.l 2*4					; 2 longwords per entry, first is source location and second is decompression location
+;KosPlus_decomp_source:					= KosPlus_decomp_queue				; the compressed data location for the first entry in the queue
+;KosPlus_decomp_destination:				= KosPlus_decomp_queue+4			; the decompression location for the first entry in the queue
+;KosPlus_decomp_queue_end				= *
+;KosPlus_modules_left:					ds.w 1						; the number of modules left to decompresses. Sign bit set indicates a module is being decompressed/has been decompressed
+;KosPlus_last_module_size:				ds.w 1						; the uncompressed size of the last module in words. All other modules are $800 words
+;KosPlus_module_queue:					ds.b 6*PLCKosPlusM_Count			; 6 bytes per entry, first longword is source location and next word is VRAM destination
+;KosPlus_module_source:					= KosPlus_module_queue				; the compressed data location for the first module in the queue
+;KosPlus_module_destination:				= KosPlus_module_queue+4			; the VRAM destination for the first module in the queue
+;KosPlus_module_queue_end				= *
+
+nlzQueue:						ds.b	nque.size*NLZ_QUEUE_SIZE	
+
+nlzQueueHead:						ds.w	1		; Word-size pointer to the first occupied entry in the queue.
+nlzQueueTail:						ds.w	1		; Word-size pointer to the last occupied entry in the queue.
+nlzQueueFree:						ds.w	1		; Word-size pointer to the first free entry in the queue.
+nlzLastModSize						ds.w	1		; Size of the last module in the current archive, in words. (Can also be used as a flag to indicate when the last module in an archive has been decompressed, as it gets cleared upon completion).
+
+nlzBookmarkFlag:					ds.b	1		; Flag used to indicate if a bookmark should be set upon returning from VBlank.
+nlzFlushModule:						ds.b	1		; Flag used to indicate if the module buffer is ready to be flushed.
+nlzModuleCount:						ds.b	1		; Number of modules left to decompress in the current archive.
+nlzModuleConfig:					ds.b	1		; Offset into the table that defines the configuration of the current archive.
+
+nlzVRAMDest:						ds.w	1		; VRAM destination for the current module to be transfered to.
+nlzBufferPtr:						ds.l	1		; The address of the decompression buffer to use for the current archive.
+nlzNextModule:						ds.l	1		; The address of the next module to be decompressed.
+nlzVIntSP:						ds.l	1		; The address that the stack pointer was set to immediately after a VBlank interrupt.
+
+nlzBookmarkDn:						ds.w	4		; Space to backup the data register when setting a bookmark. 
+nlzBookmarkAn:						ds.l	4		; Space to backup the address register when setting a bookmark. 
+nlzBookmarkSR:						ds.w	1		; Space to backup the status register flags when setting a bookmark. 
+nlzBookmarkPC:						ds.l	1		; Space to backup the program counter address when setting a bookmark.
+
 
 ; palette variables
 Target_water_palette:					= *						; used by palette fading routines

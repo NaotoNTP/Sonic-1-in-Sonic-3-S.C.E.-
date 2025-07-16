@@ -68,7 +68,9 @@ BossFinal_Setup:
 BossFinal_WaitXpos:
 
 		; don't load the objects until the art has been loaded
-		tst.w	(KosPlus_modules_left).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
 		bne.s	.return
 		move.l	#.checkxpos,obBFZ_Jump(a0)
 

@@ -11,8 +11,13 @@ Render_GameOver:
 		bne.s	.xpos
 
 		; wait for KosPlusM queue to clear
-		tst.w	(KosPlus_modules_left).w
-		beq.s	.endplc
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.return
+		bra.s	.endplc
+
+.return
 		rts
 ; ---------------------------------------------------------------------------
 

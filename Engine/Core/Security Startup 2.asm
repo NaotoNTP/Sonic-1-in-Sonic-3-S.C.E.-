@@ -45,6 +45,7 @@ Game_Program:
 
 .init
 		jsr	(Init_DMA_Queue).w
+		jsr	(NLZ_InitializeQueue).w
 		jsr	(Init_VDP).w
 		jsr	(SndDrvInit).w
 		jsr	(Init_Controllers).w

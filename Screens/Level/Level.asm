@@ -20,7 +20,7 @@ Level_VDP:
 LevelScreen:
 		bset	#GameModeFlag_TitleCard,(Game_mode).w						; set bit 7 is indicate that we're loading the level
 		music	mus_FadeOut									; fade out music
-		jsr	(Clear_KosPlus_Module_Queue).w							; clear KosPlusM PLCs
+		jsr	(NLZ_InitializeQueue).w							; clear KosPlusM PLCs
 		ResetDMAQueue										; clear DMA queue
 		jsr	(Pal_FadeToBlack).w
 		disableInts
@@ -106,7 +106,7 @@ LevelScreen:
 		lea	(PLC1_Miles).l,a5
 
 .notMiles
-		jsr	(LoadPLC_Raw_KosPlusM).w							; load HUD and ring art
+		jsr	(LoadPLC_Raw_NLZ).w							; load HUD and ring art
 		jsr	(CheckLevelForWater).w
 		clearRAM Water_palette_line_2, Normal_palette
 		tst.b	(Water_flag).w
@@ -125,15 +125,18 @@ LevelScreen:
 
 .wait
 		move.b	#VintID_Fade,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		jsr	(Process_Sprites).w
 		jsr	(Render_Sprites).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		tst.w	(Dynamic_object_RAM+(object_size*5)+objoff_48).w				; has title card sequence finished?
 		bne.s	.wait										; if not, branch
-		tst.w	(KosPlus_modules_left).w							; are there any items in the pattern load cue?
-		bne.s	.wait										; if yes, branch
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.wait
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.wait
+		
 		disableInts
 		jsr	(HUD_DrawInitial).w								; init HUD
 		enableInts
@@ -219,7 +222,7 @@ LevelScreen:
 .loop
 		jsr	(Pause_Game).w
 		move.b	#VintID_Level,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		addq.w	#1,(Level_frame_counter).w
 		bsr.w	Demo_PlayRecord
@@ -242,7 +245,7 @@ LevelScreen:
 		jsr	(Load_Rings).w
 		jsr	(Animate_Palette).w
 		jsr	(Animate_Tiles).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		jsr	(OscillateNumDo).w
 		jsr	(ChangeRingFrame).w
 		jsr	(Render_Sprites).w

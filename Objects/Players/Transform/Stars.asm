@@ -108,8 +108,11 @@ Obj_HyperSonic_Stars:
 Obj_HyperSonic_Stars_Init:
 
 		; wait for art to finish loading before we display
-		tst.w	(KosPlus_modules_left).w
-		beq.s	.artDoneLoading
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.return
+		bra.s	.artDoneLoading
 
 .return
 		rts

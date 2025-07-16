@@ -529,9 +529,9 @@ QueueKosPlusModule macro art,vram,terminate
 	move.w	#tiles_to_bytes(vram),d2
       endif
       if ("terminate"="0") || ("terminate"="")
-	jsr	(Queue_KosPlus_Module).w
+	jsr	(NLZ_AddArtToQueue).w
       else
-	jmp	(Queue_KosPlus_Module).w
+	jmp	(NLZ_AddArtToQueue).w
       endif
     endm
 

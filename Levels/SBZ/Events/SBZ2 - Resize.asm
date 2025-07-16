@@ -80,7 +80,7 @@ SBZ2_Resize:
 
 		; load art
 		lea	(PLC_SE_ControlDesk).l,a5
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 		; load SBZ2 Eggman intro object
 		jsr	(Create_New_Sprite).w

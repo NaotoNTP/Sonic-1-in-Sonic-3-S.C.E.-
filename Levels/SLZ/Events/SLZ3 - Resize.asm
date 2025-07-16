@@ -45,7 +45,7 @@ SLZ3_Resize:
 
 		; load art
 		lea	(PLC_BossSpikeBall).l,a5
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 		; load palette
 		lea	(Pal_Robotnik).l,a1

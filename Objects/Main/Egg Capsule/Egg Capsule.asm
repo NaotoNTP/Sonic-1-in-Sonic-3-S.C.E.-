@@ -22,7 +22,7 @@ Obj_EggCapsule:
 
 		; load art
 		lea	PLC_EggCapsule(pc),a5
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 		; init
 		lea	ObjDat_EggCapsule(pc),a1

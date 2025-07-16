@@ -46,7 +46,7 @@ LevelLoadPointer:
 ; Compressed level graphics - tile, primary patterns and block mappings
 ; ===========================================================================
 
-GHZ_8x8_KosPM:			binclude "Levels/GHZ/Tiles/Primary.kospm"
+GHZ_8x8_KosPM:			binclude "Levels/GHZ/Tiles/Primary.nlz"
 	even
 GHZ_16x16_Unc:			binclude "Levels/GHZ/Blocks/Primary.unc"
 	even
@@ -56,7 +56,7 @@ GHZ2_128x128_KosP:		binclude "Levels/GHZ/Chunks/2.kosp"
 	even
 GHZ3_128x128_KosP:		binclude "Levels/GHZ/Chunks/3.kosp"
 	even
-MZ_8x8_KosPM:			binclude "Levels/MZ/Tiles/Primary.kospm"
+MZ_8x8_KosPM:			binclude "Levels/MZ/Tiles/Primary.nlz"
 	even
 MZ_16x16_Unc:			binclude "Levels/MZ/Blocks/Primary.unc"
 	even
@@ -64,7 +64,7 @@ MZ1_128x128_KosP:		binclude "Levels/MZ/Chunks/1.kosp"
 	even
 MZ3_128x128_KosP:		binclude "Levels/MZ/Chunks/3.kosp"
 	even
-SYZ_8x8_KosPM:			binclude "Levels/SYZ/Tiles/Primary.kospm"
+SYZ_8x8_KosPM:			binclude "Levels/SYZ/Tiles/Primary.nlz"
 	even
 SYZ_16x16_Unc:			binclude "Levels/SYZ/Blocks/Primary.unc"
 	even
@@ -74,7 +74,7 @@ SYZ2_128x128_KosP:		binclude "Levels/SYZ/Chunks/2.kosp"
 	even
 SYZ3_128x128_KosP:		binclude "Levels/SYZ/Chunks/3.kosp"
 	even
-LZ_8x8_KosPM:			binclude "Levels/LZ/Tiles/Primary.kospm"
+LZ_8x8_KosPM:			binclude "Levels/LZ/Tiles/Primary.nlz"
 	even
 LZ_16x16_Unc:			binclude "Levels/LZ/Blocks/Primary.unc"
 	even
@@ -86,13 +86,13 @@ LZ3_128x128_KosP:		binclude "Levels/LZ/Chunks/3.kosp"
 	even
 SBZ3_128x128_KosP:		binclude "Levels/LZ/Chunks/SBZ3.kosp"
 	even
-SLZ_8x8_KosPM:			binclude "Levels/SLZ/Tiles/Primary.kospm"
+SLZ_8x8_KosPM:			binclude "Levels/SLZ/Tiles/Primary.nlz"
 	even
 SLZ_16x16_Unc:			binclude "Levels/SLZ/Blocks/Primary.unc"
 	even
 SLZ_128x128_KosP:		binclude "Levels/SLZ/Chunks/Primary.kosp"
 	even
-SBZ_8x8_KosPM:			binclude "Levels/SBZ/Tiles/Primary.kospm"
+SBZ_8x8_KosPM:			binclude "Levels/SBZ/Tiles/Primary.nlz"
 	even
 SBZ_16x16_Unc:			binclude "Levels/SBZ/Blocks/Primary.unc"
 	even

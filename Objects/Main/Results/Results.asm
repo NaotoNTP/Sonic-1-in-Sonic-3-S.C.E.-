@@ -26,7 +26,7 @@ Obj_LevelResults:
 		add.w	d0,d0
 		movea.l	(a1,d0.w),a1
 		move.w	#tiles_to_bytes($566),d2
-		jsr	(Queue_KosPlus_Module).w
+		jsr	(NLZ_AddArtToQueue).w
 
 		; load character name art
 		move.w	(Player_mode).w,d0
@@ -44,7 +44,7 @@ Obj_LevelResults:
 
 .notMiles
 		move.w	#tiles_to_bytes($548),d2
-		jsr	(Queue_KosPlus_Module).w
+		jsr	(NLZ_AddArtToQueue).w
 
 		; calc time
 		moveq	#0,d0
@@ -102,8 +102,11 @@ Obj_LevelResults:
 ; ---------------------------------------------------------------------------
 
 .create
-		tst.w	(KosPlus_modules_left).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
 		bne.s	.return								; don't load the objects until the art has been loaded
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.return								; don't load the objects until the art has been loaded
+
 		jsr	(Create_New_Sprite3).w
 		bne.s	.return
 		lea	ObjArray_LevResults(pc),a2

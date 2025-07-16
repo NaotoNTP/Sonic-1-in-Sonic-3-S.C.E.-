@@ -15,8 +15,11 @@ obBSB_Jump				= objoff_34	; .l
 Obj_BossSpikeBall:
 
 		; don't load the objects until the art has been loaded
-		tst.w	(KosPlus_modules_left).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
 		bne.s	BossSpikeBall_MoveLeft.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	BossSpikeBall_MoveLeft.return
+
 		move.l	#BossSpikeBall_Setup3,address(a0)
 
 		; init

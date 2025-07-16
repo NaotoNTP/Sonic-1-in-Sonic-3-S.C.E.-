@@ -45,7 +45,7 @@ LevelSelectRSDK_vertical_count_prev:	ds.w 1
 
 LevelSelectRSDKScreen:
 		music	mus_Stop									; stop music
-		jsr	(Clear_KosPlus_Module_Queue).w							; clear KosPlusM PLCs
+		jsr	(NLZ_InitializeQueue).w							; clear KosPlusM PLCs
 		ResetDMAQueue										; clear DMA queue
 		jsr	(Pal_FadeToBlack).w
 		disableInts
@@ -79,7 +79,7 @@ LevelSelectRSDKScreen:
 
 		; load main art
 		lea	PLC_LevelSelectRSDK(pc),a5
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 		; load BG mapping
 		EniDecomp	MapEni_LevelSelectRSDKBG, RAM_start+$2000, $60, 0, 0			; decompress Enigma mappings
@@ -112,12 +112,14 @@ LevelSelectRSDKScreen:
 
 .waitplc
 		move.b	#VintID_Fade,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
-		jsr	(Process_KosPlus_Module_Queue).w
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.waitplc									; wait for KosPlusM queue to clear
-
+	;	jsr	(Process_KosPlus_Module_Queue).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.waitplc
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.waitplc
+		
 		; update icon
 		lea	(Target_palette_line_3).w,a2
 		bsr.w	LevelSelectRSDK_UpdateIcons

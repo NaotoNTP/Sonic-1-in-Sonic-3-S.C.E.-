@@ -35,7 +35,7 @@ Continue_VDP:
 
 ContinueScreen:
 		music	mus_Stop									; stop music
-		jsr	(Clear_KosPlus_Module_Queue).w							; clear KosPlusM PLCs
+		jsr	(NLZ_InitializeQueue).w							; clear KosPlusM PLCs
 		ResetDMAQueue										; clear DMA queue
 		jsr	(Pal_FadeToBlack).w
 		disableInts
@@ -58,16 +58,18 @@ ContinueScreen:
 
 		; load main art
 		lea	PLC_Continue(pc),a5
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 .waitplc
 		move.b	#VintID_Fade,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
-		jsr	(Process_KosPlus_Module_Queue).w
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.waitplc									; wait for KosPlusM queue to clear
-
+	;	jsr	(Process_KosPlus_Module_Queue).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.waitplc
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.waitplc
+		
 		; set
 		move.w	#(11*60)-1,(Demo_timer).w							; set to wait
 
@@ -135,11 +137,11 @@ ContinueScreen:
 
 .loop
 		move.b	#VintID_Continue,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		jsr	(Process_Sprites).w
 		jsr	(Render_Sprites).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		move.b	(Continue_routine).w,d0								; load Continue routine
 		beq.s	.loop
 		subq.b	#1,d0

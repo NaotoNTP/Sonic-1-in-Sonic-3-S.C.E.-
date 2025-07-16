@@ -112,7 +112,7 @@ SpecialStage_VDP2:
 SpecialStageScreen:
 		music	mus_Stop									; stop music
 		sfx	sfx_EnterSS									; play special stage entry sound
-		jsr	(Clear_KosPlus_Module_Queue).w							; clear KosPlusM PLCs
+		jsr	(NLZ_InitializeQueue).w							; clear KosPlusM PLCs
 		ResetDMAQueue										; clear DMA queue
 		jsr	(Pal_FadeToWhite).w
 		disableInts
@@ -153,7 +153,7 @@ SpecialStageScreen:
 
 		; load art
 		lea	PLC_SpecialStage(pc),a5
-		jsr	(LoadPLC_Raw_KosPlusM).w							; load special stage patterns
+		jsr	(LoadPLC_Raw_NLZ).w							; load special stage patterns
 
 		; load special stage palette
 		lea	(Pal_SSSonic).l,a1
@@ -188,12 +188,14 @@ SpecialStageScreen:
 
 .waitplc
 		move.b	#VintID_Fade,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
-		jsr	(Process_KosPlus_Module_Queue).w
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.waitplc									; wait for KosPlusM queue to clear
-
+	;	jsr	(Process_KosPlus_Module_Queue).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.waitplc
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.waitplc
+		
 		; load layout
 		bsr.w	SS_Load										; load SS layout data
 
@@ -345,7 +347,7 @@ SpecialStageScreen:
 
 		; load art
 		lea	PLC_SpecialStageResults(pc),a5
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 		; load character name art
 		move.w	(Player_mode).w,d0
@@ -363,7 +365,7 @@ SpecialStageScreen:
 
 .notMiles
 		move.w	#tiles_to_bytes($548),d2
-		jsr	(Queue_KosPlus_Module).w
+		jsr	(NLZ_AddArtToQueue).w
 
 	if SuperHyperSonKnux
 		lea	(ArtKosPM_SSResultsHYPER).l,a1
@@ -380,7 +382,7 @@ SpecialStageScreen:
 	endif
 
 		move.w	#tiles_to_bytes($4E0),d2
-		jsr	(Queue_KosPlus_Module).w
+		jsr	(NLZ_AddArtToQueue).w
 
 		; load object
 		move.l	#Obj_SpecialStage_Results,(Dynamic_object_RAM+(object_size*29)+address).w	; load results screen object
@@ -388,7 +390,7 @@ SpecialStageScreen:
 
 .results
 		move.b	#VintID_SpecialStageResults,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		addq.w	#1,(Level_frame_counter).w
 		move.w	(Emerald_flicker_flag).w,d1
@@ -401,7 +403,7 @@ SpecialStageScreen:
 		move.w	d1,(Emerald_flicker_flag).w
 		jsr	(Process_Sprites).w
 		jsr	(Render_Sprites).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		bra.s	.results
 ; ---------------------------------------------------------------------------
 

@@ -14,6 +14,7 @@
 *.kosm binary
 *.kosp binary
 *.kospm binary
+*.nlz binary
 *.unc binary
 *.pcm binary
 *.dpcm binary

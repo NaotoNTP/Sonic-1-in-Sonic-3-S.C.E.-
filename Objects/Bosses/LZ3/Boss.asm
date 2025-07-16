@@ -23,8 +23,11 @@ obBW_Ypos				= objoff_40	; .l
 Obj_BossWater:
 
 		; don't load the objects until the art has been loaded
-		tst.w	(KosPlus_modules_left).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
 		bne.s	BossWater_MoveUp.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	BossWater_MoveUp.return
+
 		move.l	#BossWater_Setup2,address(a0)
 
 		; init

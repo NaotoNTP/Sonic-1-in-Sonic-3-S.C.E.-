@@ -19,7 +19,7 @@ Title_end:				ds.b 1
 
 TitleScreen:
 		music	mus_Stop									; stop music
-		jsr	(Clear_KosPlus_Module_Queue).w							; clear KosPlusM PLCs
+		jsr	(NLZ_InitializeQueue).w							; clear KosPlusM PLCs
 		ResetDMAQueue										; clear DMA queue
 		jsr	(Pal_FadeToBlack).w
 		disableInts
@@ -65,7 +65,7 @@ TitleScreen:
 
 .notcheat
 		move.w	#tiles_to_bytes($540),d2
-		jsr	(Queue_KosPlus_Module).w
+		jsr	(NLZ_AddArtToQueue).w
 
 		; load text palette
 		lea	(Target_palette_line_1+4).w,a1
@@ -75,11 +75,13 @@ TitleScreen:
 
 .waitplc
 		move.b	#VintID_Fade,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
-		jsr	(Process_KosPlus_Module_Queue).w
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.waitplc									; wait for KosPlusM queue to clear
+	;	jsr	(Process_KosPlus_Module_Queue).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.waitplc
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.waitplc
 
 		; check cheat
 		tst.b	(Japan_credits_flag).w
@@ -100,27 +102,30 @@ TitleScreen:
 
 		; load main art
 		lea	PLC_Title(pc),a5
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 		; fade from
 		move.b	#VintID_Menu,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		jsr	(Process_Sprites).w
 		jsr	(Render_Sprites).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		enableScreen
 		jsr	(Pal_FadeFromBlack).w
 
 .tloop
 		move.b	#VintID_Menu,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		jsr	(Process_Sprites).w
 		jsr	(Render_Sprites).w
-		jsr	(Process_KosPlus_Module_Queue).w
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.tloop										; wait for KosPlusM queue to clear
+	;	jsr	(Process_KosPlus_Module_Queue).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.tloop
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.tloop
+		
 		tst.b	(Ctrl_1_pressed).w								; is Start pressed?
 		bmi.s	.tnext										; if yes, branch
 		tst.w	(Demo_timer).w
@@ -145,7 +150,7 @@ TitleScreen:
 		EniDecomp	MapEni_TitleFG, RAM_start, $200, 0, 0					; decompress Enigma mappings
 		copyTilemap	(VRAM_Plane_A_Name_Table+$208), 272, 176
 
-		; load ©1991 text
+		; load ï¿½1991 text
 		lea	Title_CopyrightText(pc),a1
 		locVRAM	(VRAM_Plane_A_Name_Table+$D38),d1
 		move.w	#$250F,d3
@@ -191,24 +196,24 @@ TitleScreen:
 
 		; next
 		move.b	#VintID_Menu,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		jsr	(Process_Sprites).w
 		jsr	(Render_Sprites).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		enableScreen
 		jsr	(Pal_FadeFromBlack).w
 
 .loop
 		move.b	#VintID_Level,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		addq.w	#1,(Level_frame_counter).w
 		jsr	(Process_Sprites).w
 		jsr	(DeformBgLayer).w
 		jsr	(Screen_Events).w
 		jsr	(Animate_Palette).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		jsr	(Render_Sprites).w
 		bsr.w	Title_Code
 

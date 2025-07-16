@@ -5,7 +5,8 @@
 ; =============== S U B R O U T I N E =======================================
 
 VInt:
-		movem.l	d0-a6,-(sp)										; save all the registers to the stack
+		move.l	sp,(nlzVIntSP).w
+		movem.l	d0-a6,-(sp)								; save all the registers to the stack
 		lea	(VDP_data_port).l,a6
 		lea	VDP_control_port-VDP_data_port(a6),a5
 
@@ -150,7 +151,7 @@ VInt_Menu:
 		subq.w	#1,(Demo_timer).w									; subtract 1 from time left
 
 .kospm
-		jmp	(Set_KosPlus_Bookmark).w
+	;	jmp	(Set_KosPlus_Bookmark).w
 
 ; ---------------------------------------------------------------------------
 ; Fade
@@ -161,7 +162,7 @@ VInt_Menu:
 VInt_Fade:
 		bsr.s	Do_ControllerPal
 		move.w	(H_int_counter_command).w,VDP_control_port-VDP_control_port(a5)
-		jmp	(Set_KosPlus_Bookmark).w
+	;	jmp	(Set_KosPlus_Bookmark).w
 
 ; ---------------------------------------------------------------------------
 ; Main updates
@@ -185,6 +186,7 @@ Do_ControllerPal:
 .skipwater
 		dma68kToVDP Sprite_table_buffer,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
 		dma68kToVDP H_scroll_buffer,VRAM_Horiz_Scroll_Table,(224<<2),VRAM
+		jsr	(NLZ_FlushAndBookmark).w
 		jsr	(Process_DMA_Queue).w
 		startZ80
 		rts
@@ -375,6 +377,7 @@ VInt_Level_NoNegativeFlash:
 VInt_Level_Cont:
 		dma68kToVDP H_scroll_buffer,VRAM_Horiz_Scroll_Table,(224<<2),VRAM
 		dma68kToVDP Sprite_table_buffer,VRAM_Sprite_Attribute_Table,VRAM_Sprite_Attribute_Table_Size,VRAM
+		jsr	(NLZ_FlushAndBookmark).w
 		jsr	(Process_DMA_Queue).w
 		bsr.s	VInt_SpecialFunction
 		jsr	(VInt_DrawLevel.main).w
@@ -385,11 +388,12 @@ VInt_Level_Cont:
 		cmpi.b	#92,(H_int_counter).w									; is H-int occuring on or below line 92?
 		bhs.s	.notwater										; if it is, branch
 		st	(Do_Updates_in_H_int).w
-		jmp	(Set_KosPlus_Bookmark).w
+	;	jmp	(Set_KosPlus_Bookmark).w
+		rts
 ; ---------------------------------------------------------------------------
 
 .notwater
-		pea	(Set_KosPlus_Bookmark).w
+	;	pea	(Set_KosPlus_Bookmark).w
 
 ; ---------------------------------------------------------------------------
 ; Other updates

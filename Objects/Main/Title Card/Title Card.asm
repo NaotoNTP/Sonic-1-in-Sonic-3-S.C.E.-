@@ -28,7 +28,7 @@ Obj_TitleCard:
 
 .notSBZ03
 		move.w	#tiles_to_bytes($53D),d2
-		jsr	(Queue_KosPlus_Module).w
+		jsr	(NLZ_AddArtToQueue).w
 
 		; load zone name art
 		moveq	#0,d0
@@ -47,7 +47,7 @@ Obj_TitleCard:
 
 .notFZ
 		move.w	#tiles_to_bytes($54D),d2
-		jsr	(Queue_KosPlus_Module).w
+		jsr	(NLZ_AddArtToQueue).w
 
 		; next
 		move.w	#1*60+30,objoff_2E(a0)						; set wait value
@@ -73,8 +73,11 @@ Obj_TitleCard:
 ; ---------------------------------------------------------------------------
 
 .create
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.return								; don't load the objects until the art has been loaded
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.return
+
 		jsr	(Create_New_Sprite3).w
 		bne.s	.return
 		lea	ObjArray_TtlCard(pc),a2
@@ -167,13 +170,13 @@ Obj_TitleCard:
 		lea	(.kplc2)(a5),a5
 
 .notknux
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 		movea.l	(Level_data_addr_RAM.PLC2).w,a5
-		jsr	(LoadPLC_Raw_KosPlusM).w					; load main art
+		jsr	(LoadPLC_Raw_NLZ).w					; load main art
 
 .skiplevel3
 		movea.l	(Level_data_addr_RAM.PLCAnimals).w,a5
-		jsr	(LoadPLC_Raw_KosPlusM).w					; load animals art
+		jsr	(LoadPLC_Raw_NLZ).w					; load animals art
 		moveq	#1,d0
 		move.b	d0,(HUD_RAM.status).w						; load HUD
 		move.b	d0,(Update_HUD_timer).w						; update time counter

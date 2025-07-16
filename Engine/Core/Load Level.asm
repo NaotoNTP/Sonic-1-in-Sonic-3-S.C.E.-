@@ -10,22 +10,24 @@ LoadLevelLoadBlock:
 		movea.l	(Level_data_addr_RAM.8x8Data1).w,a1
 		move.w	(a1),d4								; save art size
 		moveq	#tiles_to_bytes(0),d2						; VRAM
-		bsr.w	Queue_KosPlus_Module
+		bsr.w	NLZ_AddArtToQueue
 
 		; load secondary level art
 		move.l	(Level_data_addr_RAM.8x8Data2).w,d0
 		beq.s	.waitplc
 		movea.l	d0,a1
 		move.w	d4,d2								; return art size for the starting position
-		bsr.w	Queue_KosPlus_Module
+		bsr.w	NLZ_AddArtToQueue
 
 .waitplc
 		move.b	#VintID_Fade,(V_int_routine).w
-		bsr.w	Process_KosPlus_Queue
+		bsr.w	NLZ_DecompressFromQueue
 		bsr.w	Wait_VSync
-		bsr.w	Process_KosPlus_Module_Queue
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.waitplc							; wait for KosPlusM queue to clear
+	;	bsr.w	Process_KosPlus_Module_Queue
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.waitplc
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.waitplc
 		rts
 
 ; ---------------------------------------------------------------------------
@@ -85,7 +87,7 @@ Load_Solids2:
 
 LoadLevelLoadBlock2:
 		movea.l	(Level_data_addr_RAM.PLC1).w,a5
-		bsr.w	LoadPLC_Raw_KosPlusM
+		bsr.w	LoadPLC_Raw_NLZ
 
 .skipPLC
 		lea	(Level_data_addr_RAM.16x16Data1).w,a2

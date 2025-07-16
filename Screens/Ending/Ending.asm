@@ -20,7 +20,7 @@ Ending_player:				ds.w 1
 
 EndingScreen:
 		music	mus_Stop									; stop music
-		jsr	(Clear_KosPlus_Module_Queue).w							; clear KosPlusM PLCs
+		jsr	(NLZ_InitializeQueue).w							; clear KosPlusM PLCs
 		ResetDMAQueue										; clear DMA queue
 		jsr	(Pal_FadeToBlack).w
 		disableInts
@@ -76,7 +76,7 @@ EndingScreen:
 
 		; load general art
 		lea	PLC_Ending(pc),a5
-		jsr	(LoadPLC_Raw_KosPlusM).w
+		jsr	(LoadPLC_Raw_NLZ).w
 
 		; load player palette
 		lea	(Level_data_addr_RAM.SPal).w,a1							; load Sonic palette
@@ -91,12 +91,14 @@ EndingScreen:
 
 .waitplc
 		move.b	#VintID_Fade,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
-		jsr	(Process_KosPlus_Module_Queue).w
-		tst.w	(KosPlus_modules_left).w
-		bne.s	.waitplc									; wait for KosPlusM queue to clear
-
+	;	jsr	(Process_KosPlus_Module_Queue).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
+		bne.s	.waitplc
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.s	.waitplc
+		
 		; check emeralds
 		cmpi.b	#ChaosEmer_Count,(Chaos_emerald_count).w					; do you have all the emeralds?
 		bne.s	.noemer										; if not, branch
@@ -182,18 +184,18 @@ EndingScreen:
 
 		; next
 		move.b	#VintID_Menu,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		jsr	(Process_Sprites).w
 		jsr	(Render_Sprites).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		enableScreen
 		jsr	(Pal_FadeFromBlack).w
 
 .loop
 		jsr	(Pause_Game.ending).w
 		move.b	#VintID_Level,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		addq.w	#1,(Level_frame_counter).w
 		bsr.w	End_MoveSonic
@@ -203,7 +205,7 @@ EndingScreen:
 		jsr	(Screen_Events).w
 		jsr	(Animate_Palette).w
 		jsr	(Animate_Tiles).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		jsr	(ChangeRingFrame).w
 		jsr	(Render_Sprites).w
 
@@ -219,7 +221,7 @@ EndingScreen:
 .allemlds_loop
 		jsr	(Pause_Game.ending).w
 		move.b	#VintID_Level,(V_int_routine).w
-		jsr	(Process_KosPlus_Queue).w
+		jsr	(NLZ_DecompressFromQueue).w
 		jsr	(Wait_VSync).w
 		addq.w	#1,(Level_frame_counter).w
 		bsr.s	End_MoveSonic
@@ -228,7 +230,7 @@ EndingScreen:
 		jsr	(DeformBgLayer).w
 		jsr	(Screen_Events).w
 		jsr	(Animate_Tiles).w
-		jsr	(Process_KosPlus_Module_Queue).w
+	;	jsr	(Process_KosPlus_Module_Queue).w
 		jsr	(Render_Sprites).w
 
 		; fade to white

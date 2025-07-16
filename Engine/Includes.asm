@@ -44,7 +44,22 @@
 
 		include "Engine/Decompression/Enigma Decompression.asm"
 		include "Engine/Decompression/Kosinski Plus Decompression.asm"
-		include "Engine/Decompression/Kosinski Plus Module Decompression.asm"
+	;	include "Engine/Decompression/Kosinski Plus Module Decompression.asm"
+		include "Engine/Decompression/NLZ Decompression Library.asm"
+
+; =============== S U B R O U T I N E =======================================
+LoadPLC_Raw_NLZ:
+		move.w	(a5)+,d6
+		bmi.s	.Done
+
+.queuePieces
+		movea.l	(a5)+,a1										; store source address
+		move.w	(a5)+,d2										; store destination VRAM address
+		bsr.w	NLZ_AddArtToQueue
+		dbf	d6,.queuePieces
+
+.Done
+		rts
 
 ; ---------------------------------------------------------------------------
 ; Flamedriver - Functions Subroutine

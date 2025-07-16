@@ -76,7 +76,7 @@ loc_67B1C:
 		andi.w	#$7FF,d2
 		lsl.w	#5,d2
 		lea	(ArtKosPM_EggRoboHead).l,a1
-		jmp	(Queue_KosPlus_Module).w
+		jmp	(NLZ_AddArtToQueue).w
 
 ; ---------------------------------------------------------------------------
 ; Robotnik head 4

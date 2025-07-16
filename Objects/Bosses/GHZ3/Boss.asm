@@ -17,8 +17,11 @@ obBGB_Status				= objoff_38	; .b
 Obj_BossBall:
 
 		; don't load the objects until the art has been loaded
-		tst.w	(KosPlus_modules_left).w
+		tst.l	(nlzQueueHead).w	; Test if there are any more entries in the queue after this	
 		bne.w	BossBall_MoveDown.return
+		tst.w	(nlzLastModSize).w	; Test if the last module of the last entry has been transfered
+		bne.w	BossBall_MoveDown.return
+		
 		move.l	#BossBall_Setup2,address(a0)
 
 		; init
@@ -496,7 +499,7 @@ Obj_BossBall_Scaled:
 .delete
 
 		; restore chunks
-		QueueKosPlus	GHZ3_128x128_KosP, RAM_start
+	;	QueueKosPlus	GHZ3_128x128_KosP, RAM_start
 
 		; update time counter
 		move.b	#1,(Update_HUD_timer).w
