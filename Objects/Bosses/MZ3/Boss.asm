@@ -640,6 +640,11 @@ Obj_BossFire_Scaled:
 
 		; restore chunks
 	;	QueueKosPlus	MZ3_128x128_KosP, RAM_start
+	;	movem.l	d0/d2/d4-a1/a5,-(sp)
+	;	lea	MZ3_128x128_KosP,a0
+	;	lea	RAM_start,a1
+	;	jsr	KosPlus_Decomp.w
+	;	movem.l	(sp)+,d0/d2/d4-a1/a5
 
 		; update time counter
 		move.b	#1,(Update_HUD_timer).w

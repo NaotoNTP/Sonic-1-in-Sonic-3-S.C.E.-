@@ -431,3 +431,17 @@ NLZ_ModuleConfig:
 	dc.w	$2000
 
 ; -----------------------------------------------------------------------------------------------------------------------------
+LoadPLC_Raw_NLZ:
+		move.w	(a5)+,d6
+		bmi.s	.Done
+
+.queuePieces
+		movea.l	(a5)+,a1				; store source address
+		move.w	(a5)+,d2				; store destination VRAM address
+		bsr.w	NLZ_AddArtToQueue
+		dbf	d6,.queuePieces
+
+.Done
+		rts
+
+; -----------------------------------------------------------------------------------------------------------------------------

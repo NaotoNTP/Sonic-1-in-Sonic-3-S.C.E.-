@@ -593,6 +593,9 @@ Next_demo_number:					ds.w 1
 Demo_button_index:					ds.w 1
 Demo_button_index_2P:					ds.w 1
 
+vScaling_buffer:					ds.b $2000
+vScaling_buffer_end:					= *
+
 ; end
 CrossResetRAM_end:					= *
 RAM_end:						= *
